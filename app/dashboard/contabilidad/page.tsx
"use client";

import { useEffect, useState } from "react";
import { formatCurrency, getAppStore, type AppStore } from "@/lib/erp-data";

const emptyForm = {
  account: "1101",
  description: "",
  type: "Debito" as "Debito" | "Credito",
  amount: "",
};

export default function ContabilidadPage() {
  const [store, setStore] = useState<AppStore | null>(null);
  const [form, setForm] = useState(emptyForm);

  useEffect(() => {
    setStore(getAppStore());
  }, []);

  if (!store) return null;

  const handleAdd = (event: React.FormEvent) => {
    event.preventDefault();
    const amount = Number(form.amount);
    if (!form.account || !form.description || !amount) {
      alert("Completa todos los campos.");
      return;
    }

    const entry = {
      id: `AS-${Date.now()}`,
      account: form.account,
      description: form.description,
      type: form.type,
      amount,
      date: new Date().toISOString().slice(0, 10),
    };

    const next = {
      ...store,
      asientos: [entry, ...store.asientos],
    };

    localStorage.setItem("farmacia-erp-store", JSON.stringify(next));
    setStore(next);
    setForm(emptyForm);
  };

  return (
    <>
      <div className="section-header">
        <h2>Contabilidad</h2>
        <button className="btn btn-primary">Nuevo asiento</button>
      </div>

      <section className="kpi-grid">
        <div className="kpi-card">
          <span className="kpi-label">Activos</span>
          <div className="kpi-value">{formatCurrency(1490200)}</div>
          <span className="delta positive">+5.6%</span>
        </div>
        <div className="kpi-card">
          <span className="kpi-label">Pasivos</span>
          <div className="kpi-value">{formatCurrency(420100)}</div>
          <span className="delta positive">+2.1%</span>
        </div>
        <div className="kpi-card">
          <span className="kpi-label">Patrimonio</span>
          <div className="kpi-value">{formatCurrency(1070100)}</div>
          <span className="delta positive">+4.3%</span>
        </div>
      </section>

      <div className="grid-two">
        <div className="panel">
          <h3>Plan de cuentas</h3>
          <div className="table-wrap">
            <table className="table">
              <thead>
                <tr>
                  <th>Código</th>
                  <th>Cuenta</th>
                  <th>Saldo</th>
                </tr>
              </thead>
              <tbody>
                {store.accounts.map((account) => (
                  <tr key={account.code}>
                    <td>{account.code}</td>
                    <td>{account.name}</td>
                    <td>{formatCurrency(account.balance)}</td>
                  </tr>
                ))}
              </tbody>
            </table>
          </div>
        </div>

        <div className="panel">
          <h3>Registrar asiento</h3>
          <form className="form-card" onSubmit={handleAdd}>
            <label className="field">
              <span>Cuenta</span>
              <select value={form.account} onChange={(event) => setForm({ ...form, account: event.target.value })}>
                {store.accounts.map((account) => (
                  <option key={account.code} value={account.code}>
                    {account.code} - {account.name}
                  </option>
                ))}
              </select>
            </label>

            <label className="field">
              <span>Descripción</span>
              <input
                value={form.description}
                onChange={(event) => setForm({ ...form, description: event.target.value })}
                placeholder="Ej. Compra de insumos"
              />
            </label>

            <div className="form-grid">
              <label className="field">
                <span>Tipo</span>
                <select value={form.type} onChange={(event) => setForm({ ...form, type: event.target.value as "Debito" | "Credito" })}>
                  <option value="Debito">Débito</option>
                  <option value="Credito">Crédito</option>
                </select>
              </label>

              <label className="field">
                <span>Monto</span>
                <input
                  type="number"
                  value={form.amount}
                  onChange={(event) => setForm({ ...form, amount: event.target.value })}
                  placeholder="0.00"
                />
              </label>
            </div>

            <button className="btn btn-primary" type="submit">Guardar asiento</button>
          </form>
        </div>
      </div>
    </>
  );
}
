@@ -1,0 +1,127 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { formatCurrency, getAppStore, type AppStore } from "@/lib/erp-data";
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const [store, setStore] = useState<AppStore | null>(null);
+
+  useEffect(() => {
+    const user = localStorage.getItem("farmacia-erp-user");
+    if (!user) {
+      router.push("/");
+      return;
+    }
+
+    setStore(getAppStore());
+  }, [router]);
+
+  if (!store) return null;
+
+  const totalIngresos = store.sales.reduce((sum, item) => sum + item.total, 0);
+  const totalEgresos = store.purchases.reduce((sum, item) => sum + item.total, 0) + store.cashMoves.filter((item) => item.type === "Egreso").reduce((sum, item) => sum + item.amount, 0);
+  const saldoCaja = store.cashMoves.reduce((sum, item) => sum + (item.type === "Ingreso" ? item.amount : -item.amount), 0);
+  const cuentasXCobrar = store.sales.filter((item) => item.status !== "Pagada").reduce((sum, item) => sum + item.total, 0);
+
+  return (
+    <>
+      <section className="kpi-grid">
+        <div className="kpi-card">
+          <span className="kpi-label">Total ingresos</span>
+          <div className="kpi-value">{formatCurrency(totalIngresos)}</div>
+          <span className="delta positive">+12.4%</span>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-label">Total egresos</span>
+          <div className="kpi-value">{formatCurrency(totalEgresos)}</div>
+          <span className="delta warning">-3.1%</span>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-label">Saldo caja</span>
+          <div className="kpi-value">{formatCurrency(saldoCaja)}</div>
+          <span className="delta positive">+8.7%</span>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-label">Cuentas por cobrar</span>
+          <div className="kpi-value">{formatCurrency(cuentasXCobrar)}</div>
+          <span className="delta positive">Pendiente</span>
+        </div>
+      </section>
+
+      <section className="grid-two">
+        <div className="panel">
+          <h3>Rendimiento</h3>
+          <div className="chart-bars">
+            {[58, 72, 80, 77, 91, 96, 100].map((value, index) => (
+              <span key={index} className="bar" style={{ height: `${value}%` }} />
+            ))}
+          </div>
+        </div>
+
+        <div className="panel">
+          <h3>Métricas clave</h3>
+          <div className="metric-grid">
+            <div className="metric-card">
+              <span className="metric-label">Margen bruto</span>
+              <div className="metric-value">34.2%</div>
+            </div>
+            <div className="metric-card">
+              <span className="metric-label">Rotación</span>
+              <div className="metric-value">11.4 días</div>
+            </div>
+            <div className="metric-card">
+              <span className="metric-label">Liquidez</span>
+              <div className="metric-value">1.86</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid-two">
+        <div className="panel">
+          <h3>Actividades recientes</h3>
+          <ul className="activity-list">
+            <li className="activity-item">
+              <strong>Aprobada orden de compra</strong>
+              <small>OC-1001 · Distribuidora Medix</small>
+              <em>Hace 2 horas</em>
+            </li>
+            <li className="activity-item">
+              <strong>Arqueo registrado</strong>
+              <small>Caja chica confirmada</small>
+              <em>Hace 4 horas</em>
+            </li>
+            <li className="activity-item">
+              <strong>Factura emitida</strong>
+              <small>FV-2052 · Droguería Central</small>
+              <em>Hace 6 horas</em>
+            </li>
+          </ul>
+        </div>
+
+        <div className="panel">
+          <h3>Estado de aprobaciones</h3>
+          <div className="approval-stack">
+            <div className="approval-item success">
+              <span>Compras</span>
+              <strong>4 ok</strong>
+            </div>
+            <div className="approval-item warning">
+              <span>Caja</span>
+              <strong>2 pendientes</strong>
+            </div>
+            <div className="approval-item info">
+              <span>Nómina</span>
+              <strong>1 revisión</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

@@ -1,0 +1,56 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { formatCurrency, getAppStore, type AppStore } from "@/lib/erp-data";
+
+export default function PrediccionesPage() {
+  const [store, setStore] = useState<AppStore | null>(null);
+
+  useEffect(() => {
+    setStore(getAppStore());
+  }, []);
+
+  if (!store) return null;
+
+  const forecast = [
+    { period: "Nov 2026", income: store.sales.reduce((sum, item) => sum + item.total, 0) * 1.08, expense: 1850000, status: "Flujo positivo" },
+    { period: "Dic 2026", income: store.sales.reduce((sum, item) => sum + item.total, 0) * 1.12, expense: 1940000, status: "Flujo positivo" },
+    { period: "Ene 2027", income: store.sales.reduce((sum, item) => sum + item.total, 0) * 1.18, expense: 2010000, status: "Estable" },
+  ];
+
+  return (
+    <>
+      <div className="section-header">
+        <h2>Predicciones</h2>
+        <button className="btn btn-primary">Generar forecast</button>
+      </div>
+
+      <div className="panel">
+        <h3>Forecast financiero</h3>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Periodo</th>
+                <th>Ingresos</th>
+                <th>Gastos</th>
+                <th>Pronóstico</th>
+              </tr>
+            </thead>
+            <tbody>
+              {forecast.map((item) => (
+                <tr key={item.period}>
+                  <td>{item.period}</td>
+                  <td>{formatCurrency(item.income)}</td>
+                  <td>{formatCurrency(item.expense)}</td>
+                  <td><span className="badge success">{item.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}
+

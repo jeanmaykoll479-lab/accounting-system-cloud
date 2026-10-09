@@ -1,0 +1,96 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { DEMO_USERS } from "@/lib/erp-data";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState(DEMO_USERS[0].email);
+  const [password, setPassword] = useState(DEMO_USERS[0].password);
+  const [role, setRole] = useState(DEMO_USERS[0].role);
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const user = DEMO_USERS.find(
+      (item) => item.email === email && item.password === password && item.role === role,
+    );
+
+    if (!user) {
+      alert("Credenciales inválidas. Verifica usuario, contraseña y rol.");
+      return;
+    }
+
+    localStorage.setItem("farmacia-erp-user", JSON.stringify(user));
+    router.push("/dashboard");
+  };
+
+  return (
+    <main className="login-screen">
+      <section className="login-panel hero-panel">
+        <span className="badge">ERP financiero</span>
+        <h1>Farmacia S.A.</h1>
+        <p>
+          Sistema integrado de contabilidad, finanzas, presupuesto, caja, nómina,
+          compras, ventas y reportes ejecutivos.
+        </p>
+
+        <div className="demo-roles">
+          {DEMO_USERS.slice(0, 4).map((user) => (
+            <div key={user.id} className="role-item">
+              <div>
+                <strong>{user.name}</strong>
+                <span>{user.role}</span>
+              </div>
+              <small>{user.email}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="login-panel form-panel">
+        <form onSubmit={handleSubmit} className="login-form">
+          <h2>Iniciar sesión</h2>
+
+          <label className="field">
+            <span>Correo electrónico</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="admin@farmaciasa.com"
+              required
+            />
+          </label>
+
+          <label className="field">
+            <span>Contraseña</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </label>
+
+          <label className="field">
+            <span>Rol</span>
+            <select value={role} onChange={(event) => setRole(event.target.value)}>
+              {DEMO_USERS.map((user) => (
+                <option key={user.id} value={user.role}>
+                  {user.role}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button type="submit" className="btn btn-primary full-width">
+            Entrar al sistema
+          </button>
+        </form>
+      </section>
+    </main>
+  );
+}

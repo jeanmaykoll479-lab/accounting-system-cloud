@@ -1,0 +1,214 @@
+export type Role = "ADMIN" | "CONTADOR" | "GERENTE" | "OPERADOR" | "CAJERO" | "AUDITOR";
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+};
+
+export type Purchase = {
+  id: string;
+  supplier: string;
+  date: string;
+  total: number;
+  status: string;
+};
+
+export type Sale = {
+  id: string;
+  customer: string;
+  date: string;
+  total: number;
+  status: string;
+};
+
+export type CashMove = {
+  id: string;
+  type: "Ingreso" | "Egreso";
+  concept: string;
+  date: string;
+  amount: number;
+  status: string;
+};
+
+export type BudgetItem = {
+  concept: string;
+  budget: number;
+  actual: number;
+};
+
+export type PayrollItem = {
+  employee: string;
+  role: string;
+  salary: number;
+  deductions: number;
+  status: string;
+};
+
+export type AccountItem = {
+  code: string;
+  name: string;
+  balance: number;
+};
+
+export type Asiento = {
+  id: string;
+  account: string;
+  description: string;
+  type: "Debito" | "Credito";
+  amount: number;
+  date: string;
+};
+
+export type AppStore = {
+  accounts: AccountItem[];
+  purchases: Purchase[];
+  sales: Sale[];
+  cashMoves: CashMove[];
+  budgets: BudgetItem[];
+  payroll: PayrollItem[];
+  asientos: Asiento[];
+};
+
+export const DEMO_USERS: User[] = [
+  { id: "admin", name: "Administrador", email: "admin@farmaciasa.com", password: "admin123", role: "Administrador" },
+  { id: "negocio", name: "Negocio", email: "negocio@farmaciasa.com", password: "negocio123", role: "Negocio" },
+  { id: "compras", name: "Compras", email: "compras@farmaciasa.com", password: "compras123", role: "Compras" },
+  { id: "ventas", name: "Ventas", email: "ventas@farmaciasa.com", password: "ventas123", role: "Ventas" },
+  { id: "nomina", name: "Nómina", email: "nomina@farmaciasa.com", password: "nomina123", role: "Nómina" },
+  { id: "tesorero", name: "Tesorero", email: "tesorero@farmaciasa.com", password: "tesorero123", role: "Tesorero" },
+  { id: "cajero", name: "Cajero", email: "cajero@farmaciasa.com", password: "cajero123", role: "Cajero" },
+];
+
+export const seedStore: AppStore = {
+  accounts: [
+    { code: "1101", name: "Caja general", balance: 492500 },
+    { code: "1102", name: "Caja chica", balance: 44120 },
+    { code: "1201", name: "Clientes", balance: 180300 },
+    { code: "2101", name: "Proveedores", balance: 96450 },
+    { code: "3101", name: "Capital", balance: 1050600 },
+    { code: "4101", name: "Ventas", balance: 2480000 },
+  ],
+  purchases: [
+    { id: "OC-1001", supplier: "Distribuidora Medix", date: "2026-10-01", total: 84500, status: "Aprobada" },
+    { id: "OC-1002", supplier: "Farmacos SRL", date: "2026-10-04", total: 62320, status: "Pendiente" },
+    { id: "OC-1003", supplier: "Pharma Plus", date: "2026-10-06", total: 47910, status: "Aprobada" },
+  ],
+  sales: [
+    { id: "FV-2050", customer: "Clínica San José", date: "2026-10-03", total: 72500, status: "Pagada" },
+    { id: "FV-2051", customer: "Farmacia del Barrio", date: "2026-10-05", total: 51880, status: "Cobro parcial" },
+    { id: "FV-2052", customer: "Droguería Central", date: "2026-10-07", total: 36200, status: "Emisión" },
+  ],
+  cashMoves: [
+    { id: "MV-301", type: "Ingreso", concept: "Ventas del día", date: "2026-10-09", amount: 31500, status: "Aprobado" },
+    { id: "MV-302", type: "Egreso", concept: "Compra de insumos", date: "2026-10-09", amount: 18200, status: "Pendiente" },
+    { id: "MV-303", type: "Ingreso", concept: "Cobro de clientes", date: "2026-10-08", amount: 14750, status: "Aprobado" },
+  ],
+  budgets: [
+    { concept: "Mercaderías", budget: 1200000, actual: 1090000 },
+    { concept: "Sueldos", budget: 540000, actual: 558400 },
+    { concept: "Marketing", budget: 170000, actual: 154800 },
+    { concept: "Servicios", budget: 120000, actual: 128090 },
+  ],
+  payroll: [
+    { employee: "María López", role: "Farmacéutica", salary: 22000, deductions: 2300, status: "Pagada" },
+    { employee: "José Pérez", role: "Cajero", salary: 18500, deductions: 1900, status: "Pendiente" },
+    { employee: "Carmen Ruiz", role: "Analista", salary: 25000, deductions: 2700, status: "Pagada" },
+  ],
+  asientos: [
+    { id: "AS-1001", account: "1101", description: "Cobro de venta", type: "Debito", amount: 36000, date: "2026-10-09" },
+    { id: "AS-1002", account: "4101", description: "Ingreso por ventas", type: "Credito", amount: 36000, date: "2026-10-09" },
+  ],
+};
+
+export const STORAGE_KEY = "farmacia-erp-store";
+
+export function getAppStore(): AppStore {
+  if (typeof window === "undefined") {
+    return seedStore;
+  }
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(seedStore));
+      return seedStore;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<AppStore>;
+    return {
+      accounts: parsed.accounts ?? seedStore.accounts,
+      purchases: parsed.purchases ?? seedStore.purchases,
+      sales: parsed.sales ?? seedStore.sales,
+      cashMoves: parsed.cashMoves ?? seedStore.cashMoves,
+      budgets: parsed.budgets ?? seedStore.budgets,
+      payroll: parsed.payroll ?? seedStore.payroll,
+      asientos: parsed.asientos ?? seedStore.asientos,
+    };
+  } catch {
+    return seedStore;
+  }
+}
+
+export function formatCurrency(value: number) {
+  return new Intl.NumberFormat("es-NI", {
+    style: "currency",
+    currency: "NIO",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+export function saveAppStore(store: AppStore) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  }
+}
+
+export function resetStore() {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(seedStore));
+  }
+}
+
+export const defaultUser = DEMO_USERS[0];
+
+export const roleDescriptions = {
+  Administrador: "Control total del sistema y aprobaciones",
+  Negocio: "Gestión de ventas, negocio y resultados",
+  Compras: "Órdenes, proveedores y compra de mercadería",
+  Ventas: "Facturación y seguimiento de clientes",
+  Nómina: "Nomina, salario y personal",
+  Tesorero: "Caja, flujo y finanzas",
+  Cajero: "Movimientos de caja y arqueos",
+};
+
+export const moduleStats = [
+  { label: "Ingresos", value: "C$ 2,480,000" },
+  { label: "Egresos", value: "C$ 1,780,200" },
+  { label: "Caja", value: "C$ 692,500" },
+  { label: "Cobranza", value: "C$ 180,300" },
+];
+
+export const activityFeed = [
+  { title: "Aprobada orden de compra", detail: "Distribuidora Medix", time: "Hace 2 horas" },
+  { title: "Arqueo finalizado", detail: "Caja chica confirmada", time: "Hace 4 horas" },
+  { title: "Factura emitida", detail: "Droguería Central", time: "Hace 6 horas" },
+  { title: "Presupuesto revisado", detail: "Mercaderías ajustado", time: "Hoy" },
+];
+
+export const reportCards = [
+  { label: "Margen bruto", value: "34.2%" },
+  { label: "Días de flujo", value: "18 días" },
+  { label: "Cobranza promedio", value: "12.6 días" },
+  { label: "Proyección anual", value: "C$ 31.3M" },
+];
+
+export const inventoryPreview = [
+  { product: "Vitaminas Plus", stock: 120, cost: "C$ 42" },
+  { product: "Paracetamol 500mg", stock: 290, cost: "C$ 15" },
+  { product: "Antibiótico X", stock: 75, cost: "C$ 95" },
+  { product: "Jabón Antiséptico", stock: 430, cost: "C$ 18" },
+];
+

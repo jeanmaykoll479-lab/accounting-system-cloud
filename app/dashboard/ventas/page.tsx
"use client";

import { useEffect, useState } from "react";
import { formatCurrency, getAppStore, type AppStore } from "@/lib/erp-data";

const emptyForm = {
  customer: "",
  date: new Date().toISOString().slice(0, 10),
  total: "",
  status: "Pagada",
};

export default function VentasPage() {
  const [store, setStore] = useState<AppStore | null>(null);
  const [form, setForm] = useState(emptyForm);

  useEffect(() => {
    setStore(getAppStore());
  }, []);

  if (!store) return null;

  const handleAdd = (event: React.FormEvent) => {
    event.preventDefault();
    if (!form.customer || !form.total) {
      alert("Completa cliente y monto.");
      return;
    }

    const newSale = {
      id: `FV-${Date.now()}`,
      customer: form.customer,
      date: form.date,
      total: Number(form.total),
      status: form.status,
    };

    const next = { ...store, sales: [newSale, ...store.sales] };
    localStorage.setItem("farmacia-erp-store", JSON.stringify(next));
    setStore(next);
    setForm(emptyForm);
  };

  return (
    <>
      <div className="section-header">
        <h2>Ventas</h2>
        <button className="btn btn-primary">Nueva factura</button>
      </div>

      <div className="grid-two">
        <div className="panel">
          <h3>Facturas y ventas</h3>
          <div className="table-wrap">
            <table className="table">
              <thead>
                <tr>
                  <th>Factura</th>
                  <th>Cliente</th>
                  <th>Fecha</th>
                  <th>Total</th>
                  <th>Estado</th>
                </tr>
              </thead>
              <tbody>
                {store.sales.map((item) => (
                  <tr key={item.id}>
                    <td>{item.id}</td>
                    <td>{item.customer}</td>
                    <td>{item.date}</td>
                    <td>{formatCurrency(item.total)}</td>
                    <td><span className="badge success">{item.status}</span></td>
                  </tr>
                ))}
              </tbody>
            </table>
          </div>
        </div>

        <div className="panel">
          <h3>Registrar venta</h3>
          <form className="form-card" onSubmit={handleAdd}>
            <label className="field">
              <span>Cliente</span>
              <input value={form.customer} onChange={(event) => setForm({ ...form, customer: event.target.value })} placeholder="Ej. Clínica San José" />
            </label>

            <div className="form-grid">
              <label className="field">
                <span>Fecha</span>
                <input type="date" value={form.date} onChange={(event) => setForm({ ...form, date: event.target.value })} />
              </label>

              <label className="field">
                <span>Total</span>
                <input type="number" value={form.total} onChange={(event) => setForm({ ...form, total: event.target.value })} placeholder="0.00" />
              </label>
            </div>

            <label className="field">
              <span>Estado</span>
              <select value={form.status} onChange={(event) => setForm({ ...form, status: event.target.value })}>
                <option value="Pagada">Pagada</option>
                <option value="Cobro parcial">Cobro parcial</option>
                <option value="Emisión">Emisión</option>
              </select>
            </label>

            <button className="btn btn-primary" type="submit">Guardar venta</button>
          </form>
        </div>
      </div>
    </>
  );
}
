@@ -1,0 +1,116 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { formatCurrency, getAppStore, type AppStore } from "@/lib/erp-data";
+
+const emptyForm = {
+  supplier: "",
+  date: new Date().toISOString().slice(0, 10),
+  total: "",
+  status: "Pendiente",
+};
+
+export default function ComprasPage() {
+  const [store, setStore] = useState<AppStore | null>(null);
+  const [form, setForm] = useState(emptyForm);
+
+  useEffect(() => {
+    setStore(getAppStore());
+  }, []);
+
+  if (!store) return null;
+
+  const handleAdd = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!form.supplier || !form.total) {
+      alert("Completa proveedor y monto.");
+      return;
+    }
+
+    const newPurchase = {
+      id: `OC-${Date.now()}`,
+      supplier: form.supplier,
+      date: form.date,
+      total: Number(form.total),
+      status: form.status,
+    };
+
+    const next = { ...store, purchases: [newPurchase, ...store.purchases] };
+    localStorage.setItem("farmacia-erp-store", JSON.stringify(next));
+    setStore(next);
+    setForm(emptyForm);
+  };
+
+  return (
+    <>
+      <div className="section-header">
+        <h2>Compras</h2>
+        <button className="btn btn-primary">Nueva orden</button>
+      </div>
+
+      <div className="grid-two">
+        <div className="panel">
+          <h3>Órdenes de compra</h3>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Orden</th>
+                  <th>Proveedor</th>
+                  <th>Fecha</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {store.purchases.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.id}</td>
+                    <td>{item.supplier}</td>
+                    <td>{item.date}</td>
+                    <td>{formatCurrency(item.total)}</td>
+                    <td><span className="badge info">{item.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="panel">
+          <h3>Registrar compra</h3>
+          <form className="form-card" onSubmit={handleAdd}>
+            <label className="field">
+              <span>Proveedor</span>
+              <input value={form.supplier} onChange={(event) => setForm({ ...form, supplier: event.target.value })} placeholder="Ej. Distribuidora Medix" />
+            </label>
+
+            <div className="form-grid">
+              <label className="field">
+                <span>Fecha</span>
+                <input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} />
+              </label>
+
+              <label className="field">
+                <span>Total</span>
+                <input type="number" value={form.total} onChange={(event) => setForm({ ...form, total: event.target.value })} placeholder="0.00" />
+              </label>
+            </div>
+
+            <label className="field">
+              <span>Estado</span>
+              <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Aprobada">Aprobada</option>
+                <option value="Cancelada">Cancelada</option>
+              </select>
+            </label>
+
+            <button className="btn btn-primary" type="submit">Guardar orden</button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}
+
