@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Farmacia S.A. | ERP Cloud",
-  description: "Sistema ERP para farmacia con facturas, órdenes, compras, ventas, nómina, caja chica, caja general y aprobaciones.",
+  title: "Farmacia S.A. | ERP Contable",
+  description: "ERP de contabilidad, finanzas, presupuestos y predicciones para Farmacia S.A.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="es">
       <body>{children}</body>

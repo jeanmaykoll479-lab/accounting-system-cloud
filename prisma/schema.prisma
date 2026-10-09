@@ -1,0 +1,757 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USUARIOS Y AUTENTICACIÓN
+// ============================================================================
+model Usuario {
+  id                String      @id @default(cuid())
+  auth0Id           String      @unique
+  email             String      @unique
+  nombre            String
+  apellido          String?
+  rol               Rol         @default(OPERADOR)
+  estado            EstadoUsuario @default(ACTIVO)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  ultimoAcceso      DateTime?
+
+  // Relaciones
+  asientos          Asiento[]
+  presupuestos      Presupuesto[]
+  predicciones      Prediccion[]
+  aprobaciones      Aprobacion[]
+  movimientoCaja    MovimientoCaja[]
+  pagos             Pago[]
+  logAuditoria      LogAuditoria[]
+
+  @@map("usuarios")
+}
+
+enum Rol {
+  ADMIN
+  CONTADOR
+  GERENTE
+  OPERADOR
+  CAJERO
+  AUDITOR
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+  SUSPENDIDO
+}
+
+// ============================================================================
+// CONFIGURACIÓN EMPRESA
+// ============================================================================
+model EmpresaConfig {
+  id                String      @id @default(cuid())
+  nombre            String
+  razonSocial       String
+  nit               String      @unique
+  ciudad            String
+  pais              String
+  moneda            String      @default("NIO")
+  telefonoContacto  String?
+  emailContacto     String?
+  logo              String?
+  fechaFundacion    DateTime
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@map("empresa_config")
+}
+
+// ============================================================================
+// PLAN DE CUENTAS - IFRS/GAAP
+// ============================================================================
+model CuentaContable {
+  id                String      @id @default(cuid())
+  codigo            String      @unique
+  nombre            String
+  descripcion       String?
+  tipo              TipoCuenta
+  clase             ClaseCuenta
+  naturaleza        Naturaleza
+  nivel             Int         @default(1)
+  activa            Boolean     @default(true)
+  requiereAnalisis  Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  cuentaPadreId     String?
+  cuentaPadre       CuentaContable? @relation("CuentaPadre", fields: [cuentaPadreId], references: [id])
+  cuentasHijas      CuentaContable[] @relation("CuentaPadre")
+  detallesAsiento   DetalleAsiento[]
+  saldos            SaldoCuenta[]
+
+  @@map("cuentas_contables")
+}
+
+enum TipoCuenta {
+  ACTIVO
+  PASIVO
+  PATRIMONIO
+  INGRESOS
+  COSTOS
+  GASTOS
+  INGRESOS_OTROS
+  GASTOS_OTROS
+}
+
+enum ClaseCuenta {
+  CIRCULANTE
+  NO_CIRCULANTE
+  CAJA
+  BANCO
+  INVENTARIO
+  CLIENTES
+  PROVEEDORES
+  DEUDA_LARGO_PLAZO
+  PATRIMONIO_NETO
+  INGRESOS_OPERACIONALES
+  INGRESOS_FINANCIEROS
+  GASTOS_OPERACIONALES
+  GASTOS_FINANCIEROS
+  IMPUESTOS
+}
+
+enum Naturaleza {
+  DEUDORA
+  ACREEDORA
+}
+
+// ============================================================================
+// ASIENTOS CONTABLES
+// ============================================================================
+model Asiento {
+  id                String      @id @default(cuid())
+  numero            Int         @unique @default(autoincrement())
+  fecha             DateTime
+  descripcion       String
+  referencia        String?
+  tipo              TipoAsiento
+  estado            EstadoAsiento @default(BORRADOR)
+  usuarioId         String
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  periodoId         String
+  periodo           PeriodoContable @relation(fields: [periodoId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  fechaAprobacion   DateTime?
+  usuarioAprobador  String?
+  observaciones     String?
+
+  // Relaciones
+  detalles          DetalleAsiento[]
+  aprobacion        Aprobacion?
+  logAuditoria      LogAuditoria[]
+
+  @@map("asientos")
+}
+
+enum TipoAsiento {
+  COMPRA
+  VENTA
+  PAGO_PROVEEDOR
+  COBRO_CLIENTE
+  ENTRADA_CAJA
+  SALIDA_CAJA
+  AJUSTE
+  CIERRE
+  APERTURA
+  NOMINA
+  DEPRECIACION
+  PROVISION
+  AMORTIZACION
+}
+
+enum EstadoAsiento {
+  BORRADOR
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CONTABILIZADO
+  ANULADO
+}
+
+model DetalleAsiento {
+  id                String      @id @default(cuid())
+  asientoId         String
+  asiento           Asiento     @relation(fields: [asientoId], references: [id], onDelete: Cascade)
+  cuentaId          String
+  cuenta            CuentaContable @relation(fields: [cuentaId], references: [id])
+  debito            Decimal     @default(0) @db.Decimal(18, 2)
+  credito           Decimal     @default(0) @db.Decimal(18, 2)
+  descripcion       String?
+  createdAt         DateTime    @default(now())
+
+  @@map("detalles_asiento")
+}
+
+model PeriodoContable {
+  id                String      @id @default(cuid())
+  nombre            String
+  fechaInicio       DateTime
+  fechaFin          DateTime
+  estado            EstadoPeriodo @default(ABIERTO)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  asientos          Asiento[]
+  balances          BalanceGeneralPeriodo[]
+
+  @@map("periodos_contables")
+}
+
+enum EstadoPeriodo {
+  ABIERTO
+  CIERRE_PARCIAL
+  CERRADO
+}
+
+// ============================================================================
+// SALDOS Y BALANCES
+// ============================================================================
+model SaldoCuenta {
+  id                String      @id @default(cuid())
+  cuentaId          String
+  cuenta            CuentaContable @relation(fields: [cuentaId], references: [id])
+  fecha             DateTime
+  saldoDeudor       Decimal     @default(0) @db.Decimal(18, 2)
+  saldoAcreedor     Decimal     @default(0) @db.Decimal(18, 2)
+  movimientos       Int         @default(0)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@unique([cuentaId, fecha])
+  @@map("saldos_cuentas")
+}
+
+model BalanceGeneralPeriodo {
+  id                String      @id @default(cuid())
+  periodoId         String
+  periodo           PeriodoContable @relation(fields: [periodoId], references: [id])
+  totalActivos      Decimal     @db.Decimal(18, 2)
+  totalPasivos      Decimal     @db.Decimal(18, 2)
+  totalPatrimonio   Decimal     @db.Decimal(18, 2)
+  fechaGeneracion   DateTime    @default(now())
+
+  @@map("balance_general_periodos")
+}
+
+// ============================================================================
+// TRANSACCIONES OPERATIVAS
+// ============================================================================
+model Proveedor {
+  id                String      @id @default(cuid())
+  nombre            String
+  nit               String      @unique
+  ciudad            String?
+  pais              String?
+  telefonoContacto  String?
+  emailContacto     String?
+  diasCredito       Int         @default(30)
+  limiteCredito     Decimal     @db.Decimal(18, 2)
+  activo            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  compras           Compra[]
+  pagos             Pago[]
+
+  @@map("proveedores")
+}
+
+model Cliente {
+  id                String      @id @default(cuid())
+  nombre            String
+  cedula            String?
+  nit               String?
+  ciudad            String?
+  pais              String?
+  telefonoContacto  String?
+  emailContacto     String?
+  diasCredito       Int         @default(0)
+  limiteCredito     Decimal     @db.Decimal(18, 2)
+  activo            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  facturas          Factura[]
+
+  @@map("clientes")
+}
+
+model Producto {
+  id                String      @id @default(cuid())
+  codigo            String      @unique
+  nombre            String
+  descripcion       String?
+  precio            Decimal     @db.Decimal(18, 2)
+  costo             Decimal     @db.Decimal(18, 2)
+  cantidad          Int         @default(0)
+  unidad            String      @default("UN")
+  categoria         String?
+  impuesto          Decimal     @default(15) @db.Decimal(5, 2)
+  activo            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  detallesCompra    DetalleCompra[]
+  detallesFactura   DetalleFactura[]
+
+  @@map("productos")
+}
+
+model Compra {
+  id                String      @id @default(cuid())
+  numero            Int         @unique @default(autoincrement())
+  fecha             DateTime
+  proveedorId       String
+  proveedor         Proveedor   @relation(fields: [proveedorId], references: [id])
+  subtotal          Decimal     @db.Decimal(18, 2)
+  impuesto          Decimal     @db.Decimal(18, 2)
+  total             Decimal     @db.Decimal(18, 2)
+  estado            EstadoCompra @default(BORRADOR)
+  referencia        String?
+  observaciones     String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  asientoId         String?
+
+  // Relaciones
+  detalles          DetalleCompra[]
+  pagos             Pago[]
+
+  @@map("compras")
+}
+
+model DetalleCompra {
+  id                String      @id @default(cuid())
+  compraId          String
+  compra            Compra      @relation(fields: [compraId], references: [id], onDelete: Cascade)
+  productoId        String
+  producto          Producto    @relation(fields: [productoId], references: [id])
+  cantidad          Int
+  precio            Decimal     @db.Decimal(18, 2)
+  impuesto          Decimal     @db.Decimal(18, 2)
+  subtotal          Decimal     @db.Decimal(18, 2)
+
+  @@map("detalles_compra")
+}
+
+model Factura {
+  id                String      @id @default(cuid())
+  numero            Int         @unique @default(autoincrement())
+  fecha             DateTime
+  clienteId         String
+  cliente           Cliente     @relation(fields: [clienteId], references: [id])
+  subtotal          Decimal     @db.Decimal(18, 2)
+  impuesto          Decimal     @db.Decimal(18, 2)
+  total             Decimal     @db.Decimal(18, 2)
+  estado            EstadoFactura @default(EMITIDA)
+  plazoVencimiento  Int         @default(0)
+  observaciones     String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  asientoId         String?
+
+  // Relaciones
+  detalles          DetalleFactura[]
+  pagos             PagoFactura[]
+
+  @@map("facturas")
+}
+
+model DetalleFactura {
+  id                String      @id @default(cuid())
+  facturaId         String
+  factura           Factura     @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  productoId        String
+  producto          Producto    @relation(fields: [productoId], references: [id])
+  cantidad          Int
+  precio            Decimal     @db.Decimal(18, 2)
+  impuesto          Decimal     @db.Decimal(18, 2)
+  subtotal          Decimal     @db.Decimal(18, 2)
+
+  @@map("detalles_factura")
+}
+
+enum EstadoCompra {
+  BORRADOR
+  PENDIENTE_APROBACION
+  APROBADA
+  RECHAZADA
+  RECIBIDA
+  CONTABILIZADA
+  ANULADA
+}
+
+enum EstadoFactura {
+  BORRADOR
+  EMITIDA
+  ENVIADA
+  PAGADA
+  ANULADA
+  VENCIDA
+}
+
+// ============================================================================
+// CAJA Y MOVIMIENTOS
+// ============================================================================
+model Caja {
+  id                String      @id @default(cuid())
+  nombre            String
+  tipo              TipoCaja
+  saldoActual       Decimal     @default(0) @db.Decimal(18, 2)
+  saldoInicial      Decimal     @db.Decimal(18, 2)
+  estado            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  movimientos       MovimientoCaja[]
+  arqueos           ArqueoCaja[]
+
+  @@map("cajas")
+}
+
+enum TipoCaja {
+  GENERAL
+  CHICA
+  BANCO
+}
+
+model MovimientoCaja {
+  id                String      @id @default(cuid())
+  cajaId            String
+  caja              Caja        @relation(fields: [cajaId], references: [id])
+  tipo              TipoMovimiento
+  cantidad          Decimal     @db.Decimal(18, 2)
+  descripcion       String
+  referencia        String?
+  usuarioId         String
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  estado            EstadoMovimiento @default(PENDIENTE)
+  fechaAprobacion   DateTime?
+  usuarioAprobador  String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  aprobacion        Aprobacion?
+
+  @@map("movimientos_caja")
+}
+
+enum TipoMovimiento {
+  INGRESO
+  EGRESO
+  TRANSFERENCIA
+  AJUSTE
+}
+
+enum EstadoMovimiento {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CONTABILIZADO
+  ANULADO
+}
+
+model ArqueoCaja {
+  id                String      @id @default(cuid())
+  cajaId            String
+  caja              Caja        @relation(fields: [cajaId], references: [id])
+  fecha             DateTime
+  saldoSistema      Decimal     @db.Decimal(18, 2)
+  saldoFisico       Decimal     @db.Decimal(18, 2)
+  diferencia        Decimal     @db.Decimal(18, 2)
+  estado            EstadoArqueo @default(PENDIENTE)
+  observaciones     String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  aprobacion        Aprobacion?
+
+  @@map("arqueos_caja")
+}
+
+enum EstadoArqueo {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  ANULADO
+}
+
+// ============================================================================
+// PAGOS
+// ============================================================================
+model Pago {
+  id                String      @id @default(cuid())
+  numero            Int         @unique @default(autoincrement())
+  fecha             DateTime
+  tipo              TipoPago
+  monto             Decimal     @db.Decimal(18, 2)
+  metodo            MetodoPago
+  referencia        String?
+  usuarioId         String
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  estado            EstadoPago  @default(PENDIENTE)
+  observaciones     String?
+  compraId          String?
+  compra            Compra?     @relation(fields: [compraId], references: [id])
+  proveedorId       String?
+  proveedor         Proveedor?  @relation(fields: [proveedorId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  pagosFactura      PagoFactura[]
+  aprobacion        Aprobacion?
+
+  @@map("pagos")
+}
+
+model PagoFactura {
+  id                String      @id @default(cuid())
+  facturaId         String
+  factura           Factura     @relation(fields: [facturaId], references: [id])
+  pagoId            String
+  pago              Pago        @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  monto             Decimal     @db.Decimal(18, 2)
+  createdAt         DateTime    @default(now())
+
+  @@map("pagos_facturas")
+}
+
+enum TipoPago {
+  COMPRA
+  PROVEEDOR
+  EMPLEADO
+  OTRO
+}
+
+enum MetodoPago {
+  EFECTIVO
+  CHEQUE
+  TRANSFERENCIA
+  TARJETA_CREDITO
+  TARJETA_DEBITO
+  DIGITAL
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  PAGADO
+  ANULADO
+}
+
+// ============================================================================
+// PRESUPUESTOS
+// ============================================================================
+model Presupuesto {
+  id                String      @id @default(cuid())
+  nombre            String
+  descripcion       String?
+  periodoInicio     DateTime
+  periodoFin        DateTime
+  totalPresupuestado Decimal    @db.Decimal(18, 2)
+  totalGastado      Decimal     @default(0) @db.Decimal(18, 2)
+  estado            EstadoPresupuesto @default(BORRADOR)
+  usuarioId         String
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  lineas            LineaPresupuesto[]
+
+  @@map("presupuestos")
+}
+
+model LineaPresupuesto {
+  id                String      @id @default(cuid())
+  presupuestoId     String
+  presupuesto       Presupuesto @relation(fields: [presupuestoId], references: [id], onDelete: Cascade)
+  concepto          String
+  monto             Decimal     @db.Decimal(18, 2)
+  gastado           Decimal     @default(0) @db.Decimal(18, 2)
+  variancia         Decimal     @db.Decimal(18, 2)
+  porcentajeVariancia Decimal   @default(0) @db.Decimal(5, 2)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@map("lineas_presupuesto")
+}
+
+enum EstadoPresupuesto {
+  BORRADOR
+  PRESENTADO
+  APROBADO
+  RECHAZADO
+  VIGENTE
+  CERRADO
+}
+
+// ============================================================================
+// PREDICCIONES Y ANÁLISIS
+// ============================================================================
+model Prediccion {
+  id                String      @id @default(cuid())
+  nombre            String
+  tipo              TipoPrediccion
+  periodoInicio     DateTime
+  periodoFin        DateTime
+  valores           Float[]
+  predicciones      Float[]
+  confianza         Float       @default(0.85)
+  modeloUsado       String
+  usuarioId         String
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@map("predicciones")
+}
+
+enum TipoPrediccion {
+  INGRESOS
+  GASTOS
+  FLUJO_CAJA
+  DEMANDA_PRODUCTOS
+  COBRANZAS
+  PAGOS
+}
+
+// ============================================================================
+// NÓMINA
+// ============================================================================
+model Empleado {
+  id                String      @id @default(cuid())
+  nombre            String
+  cedula            String      @unique
+  cargo             String
+  departamento      String
+  salarioBasico     Decimal     @db.Decimal(18, 2)
+  fechaIngreso      DateTime
+  estado            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relaciones
+  nominas           Nomina[]
+
+  @@map("empleados")
+}
+
+model Nomina {
+  id                String      @id @default(cuid())
+  numero            Int         @unique @default(autoincrement())
+  fecha             DateTime
+  empleadoId        String
+  empleado          Empleado    @relation(fields: [empleadoId], references: [id])
+  salarioBasico     Decimal     @db.Decimal(18, 2)
+  aportesEmpleado   Decimal     @default(0) @db.Decimal(18, 2)
+  deduccionesOtras  Decimal     @default(0) @db.Decimal(18, 2)
+  totalDescuentos   Decimal     @default(0) @db.Decimal(18, 2)
+  salarioNeto       Decimal     @db.Decimal(18, 2)
+  estado            EstadoNomina @default(BORRADOR)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@map("nominas")
+}
+
+enum EstadoNomina {
+  BORRADOR
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+  PAGADA
+  ANULADA
+}
+
+// ============================================================================
+// APROBACIONES
+// ============================================================================
+model Aprobacion {
+  id                String      @id @default(cuid())
+  tipo              TipoAprobacion
+  referencia        String
+  estado            EstadoAprobacion @default(PENDIENTE)
+  usuarioId         String
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  observaciones     String?
+  asientoId         String?
+  asiento           Asiento?    @relation(fields: [asientoId], references: [id])
+  movimientoCajaId  String?     @unique
+  movimientoCaja    MovimientoCaja? @relation(fields: [movimientoCajaId], references: [id])
+  arqueoCajaId      String?     @unique
+  arqueoCaja        ArqueoCaja? @relation(fields: [arqueoCajaId], references: [id])
+  pagoId            String?     @unique
+  pago              Pago?       @relation(fields: [pagoId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@map("aprobaciones")
+}
+
+enum TipoAprobacion {
+  ASIENTO
+  MOVIMIENTO_CAJA
+  ARQUEO
+  PAGO
+  COMPRA
+  FACTURA
+  NOMINA
+}
+
+enum EstadoAprobacion {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+// ============================================================================
+// AUDITORÍA
+// ============================================================================
+model LogAuditoria {
+  id                String      @id @default(cuid())
+  usuarioId         String
+  usuario           Usuario     @relation(fields: [usuarioId], references: [id])
+  accion            String
+  entidad           String
+  entidadId         String
+  cambiosAnteriores Json?
+  cambiosNuevos     Json?
+  direccionIP       String?
+  navegador         String?
+  createdAt         DateTime    @default(now())
+
+  // Relaciones
+  asientoId         String?
+  asiento           Asiento?    @relation(fields: [asientoId], references: [id])
+
+  @@map("logs_auditoria")
+}

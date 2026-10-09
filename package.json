@@ -1,24 +1,36 @@
 {
-  "name": "farmacia-sa",
+  "name": "farmacia-sa-erp",
   "version": "1.0.0",
+  "description": "ERP de contabilidad, finanzas y presupuestos para Farmacia S.A.",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:migrate": "npx prisma migrate dev",
+    "db:seed": "npx ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "next": "14.2.15",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "@auth0/nextjs-auth0": "^3.0.0",
+    "@prisma/client": "^5.20.0",
+    "@types/uuid": "^9.0.8",
+    "axios": "^1.7.7",
+    "chart.js": "^4.4.6",
+    "date-fns": "^3.6.0",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^18.3.1",
+    "uuid": "^9.0.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "20.12.12",
-    "@types/react": "18.2.66",
-    "@types/react-dom": "18.2.0",
-    "eslint": "8.57.0",
-    "eslint-config-next": "14.2.15",
-    "typescript": "5.4.5"
+    "@types/node": "^20.14.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "prisma": "^5.20.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   }
 }
