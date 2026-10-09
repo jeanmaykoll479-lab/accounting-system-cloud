@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Farmacia S.A. | ERP Contable",
-  description: "ERP de contabilidad, finanzas, presupuestos y predicciones para Farmacia S.A.",
+  title: "Farmacia S.A. - ERP Contable",
+  description: "Sistema ERP de contabilidad, finanzas y presupuestos para Farmacia S.A. en Córdoba, Nicaragua",
 };
 
 export default function RootLayout({
