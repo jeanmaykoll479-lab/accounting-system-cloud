@@ -1,0 +1,54 @@
+app/dashboard/contabilidad/page.tsx
+import { accountRows } from "@/lib/finance-data";
+
+export default function ContabilidadPage() {
+  return (
+    <>
+      <div className="page-header">
+        <h2>Contabilidad</h2>
+        <button className="btn btn-primary">Nuevo asiento</button>
+      </div>
+
+      <section className="stats-grid three-cols">
+        <div className="stat-card">
+          <span className="stat-label">Activos</span>
+          <strong className="stat-value">C$ 1,490,200</strong>
+          <span className="stat-delta positive">+5.6%</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Pasivos</span>
+          <strong className="stat-value">C$ 420,100</strong>
+          <span className="stat-delta positive">+2.1%</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Patrimonio</span>
+          <strong className="stat-value">C$ 1,070,100</strong>
+          <span className="stat-delta positive">+4.3%</span>
+        </div>
+      </section>
+
+      <div className="panel">
+        <h3>Plan de cuentas</h3>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cuenta</th>
+              <th>Saldo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {accountRows.map((row) => (
+              <tr key={row.code}>
+                <td>{row.code}</td>
+                <td>{row.account}</td>
+                <td>{row.balance}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+

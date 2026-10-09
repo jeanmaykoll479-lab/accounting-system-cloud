@@ -1,0 +1,42 @@
+app/dashboard/nomina/page.tsx
+import { payrollRows } from "@/lib/finance-data";
+
+export default function NominaPage() {
+  return (
+    <>
+      <div className="page-header">
+        <h2>Nómina</h2>
+        <button className="btn btn-primary">Procesar nómina</button>
+      </div>
+
+      <div className="panel">
+        <h3>Pagos del personal</h3>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Empleado</th>
+              <th>Cargo</th>
+              <th>Salario</th>
+              <th>Deducciones</th>
+              <th>Neto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {payrollRows.map((row) => (
+              <tr key={row.employee}>
+                <td>{row.employee}</td>
+                <td>{row.role}</td>
+                <td>{row.salary}</td>
+                <td>{row.deductions}</td>
+                <td>{row.net}</td>
+                <td><span className="badge badge-info">{row.status}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+

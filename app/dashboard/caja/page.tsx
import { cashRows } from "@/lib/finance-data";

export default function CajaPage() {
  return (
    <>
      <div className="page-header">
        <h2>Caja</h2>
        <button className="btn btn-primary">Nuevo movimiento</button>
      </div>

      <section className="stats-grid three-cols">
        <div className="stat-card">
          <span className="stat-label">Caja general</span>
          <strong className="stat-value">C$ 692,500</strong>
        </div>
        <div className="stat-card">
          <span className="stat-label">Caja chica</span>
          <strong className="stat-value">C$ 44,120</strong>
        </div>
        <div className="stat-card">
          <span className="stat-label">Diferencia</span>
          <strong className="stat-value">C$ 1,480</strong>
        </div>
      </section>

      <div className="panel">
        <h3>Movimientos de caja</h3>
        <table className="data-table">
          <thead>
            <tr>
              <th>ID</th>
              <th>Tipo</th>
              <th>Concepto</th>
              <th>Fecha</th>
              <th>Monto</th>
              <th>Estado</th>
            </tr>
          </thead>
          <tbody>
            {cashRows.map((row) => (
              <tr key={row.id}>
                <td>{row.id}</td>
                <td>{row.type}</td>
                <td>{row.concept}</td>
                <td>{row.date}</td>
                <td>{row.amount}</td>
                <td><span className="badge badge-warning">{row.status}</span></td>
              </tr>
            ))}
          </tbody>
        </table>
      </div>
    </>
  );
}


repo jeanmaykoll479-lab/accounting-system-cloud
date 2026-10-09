@@ -1,0 +1,40 @@
+app/dashboard/ventas/page.tsx
+import { salesRows } from "@/lib/finance-data";
+
+export default function VentasPage() {
+  return (
+    <>
+      <div className="page-header">
+        <h2>Ventas</h2>
+        <button className="btn btn-primary">Nueva factura</button>
+      </div>
+
+      <div className="panel">
+        <h3>Facturas y ventas</h3>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Factura</th>
+              <th>Cliente</th>
+              <th>Fecha</th>
+              <th>Total</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {salesRows.map((row) => (
+              <tr key={row.id}>
+                <td>{row.id}</td>
+                <td>{row.customer}</td>
+                <td>{row.date}</td>
+                <td>{row.total}</td>
+                <td><span className="badge badge-success">{row.status}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+

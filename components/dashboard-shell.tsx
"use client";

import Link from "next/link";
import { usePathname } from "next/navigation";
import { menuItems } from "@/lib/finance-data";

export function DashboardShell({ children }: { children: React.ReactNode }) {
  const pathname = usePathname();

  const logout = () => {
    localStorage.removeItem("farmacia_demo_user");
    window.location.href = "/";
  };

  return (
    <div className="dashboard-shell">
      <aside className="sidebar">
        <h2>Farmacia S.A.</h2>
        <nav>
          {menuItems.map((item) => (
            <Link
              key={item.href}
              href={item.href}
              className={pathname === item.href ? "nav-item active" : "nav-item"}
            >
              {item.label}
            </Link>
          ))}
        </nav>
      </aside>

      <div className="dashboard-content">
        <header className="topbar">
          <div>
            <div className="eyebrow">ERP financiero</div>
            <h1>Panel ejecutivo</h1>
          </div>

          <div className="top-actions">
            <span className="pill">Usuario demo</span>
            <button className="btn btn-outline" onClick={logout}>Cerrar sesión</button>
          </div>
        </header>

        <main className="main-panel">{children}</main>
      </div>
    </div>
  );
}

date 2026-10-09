@@ -1,0 +1,117 @@
+export const menuItems = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Contabilidad", href: "/dashboard/contabilidad" },
+  { label: "Compras", href: "/dashboard/compras" },
+  { label: "Ventas", href: "/dashboard/ventas" },
+  { label: "Caja", href: "/dashboard/caja" },
+  { label: "Presupuestos", href: "/dashboard/presupuestos" },
+  { label: "Predicciones", href: "/dashboard/predicciones" },
+  { label: "Nómina", href: "/dashboard/nomina" },
+  { label: "Reportes", href: "/dashboard/reportes" },
+];
+
+export const demoUsers = [
+  { id: "admin", name: "Administrador", email: "admin@farmaciasa.com", password: "admin123", role: "Administrador" },
+  { id: "negocio", name: "Negocio", email: "negocio@farmaciasa.com", password: "negocio123", role: "Negocio" },
+  { id: "compras", name: "Compras", email: "compras@farmaciasa.com", password: "compras123", role: "Compras" },
+  { id: "ventas", name: "Ventas", email: "ventas@farmaciasa.com", password: "ventas123", role: "Ventas" },
+  { id: "nomina", name: "Nómina", email: "nomina@farmaciasa.com", password: "nomina123", role: "Nómina" },
+  { id: "tesorero", name: "Tesorero", email: "tesorero@farmaciasa.com", password: "tesorero123", role: "Tesorero" },
+  { id: "cajero", name: "Cajero", email: "cajero@farmaciasa.com", password: "cajero123", role: "Cajero" },
+];
+
+export const summaryCards = [
+  { label: "Ingresos del mes", value: "C$ 2,480,000", delta: "+12.4%" },
+  { label: "Egresos del mes", value: "C$ 1,780,200", delta: "-3.1%" },
+  { label: "Caja general", value: "C$ 692,500", delta: "+8.7%" },
+  { label: "Caja chica", value: "C$ 44,120", delta: "+2.3%" },
+];
+
+export const purchaseRows = [
+  { id: "OC-1001", supplier: "Distribuidora Medix", date: "2026-10-01", total: "C$ 84,500", status: "Aprobada" },
+  { id: "OC-1002", supplier: "Farmacos SRL", date: "2026-10-04", total: "C$ 62,320", status: "Pendiente" },
+  { id: "OC-1003", supplier: "Pharma Plus", date: "2026-10-06", total: "C$ 47,910", status: "Esperando" },
+];
+
+export const salesRows = [
+  { id: "FV-2050", customer: "Clínica San José", date: "2026-10-03", total: "C$ 72,500", status: "Pagada" },
+  { id: "FV-2051", customer: "Farmacia del Barrio", date: "2026-10-05", total: "C$ 51,880", status: "Cobro parcial" },
+  { id: "FV-2052", customer: "Droguería Central", date: "2026-10-07", total: "C$ 36,200", status: "Emisión" },
+];
+
+export const cashRows = [
+  { id: "MV-301", type: "Ingreso", concept: "Ventas del día", date: "2026-10-09", amount: "C$ 31,500", status: "Aprobado" },
+  { id: "MV-302", type: "Egreso", concept: "Compra de insumos", date: "2026-10-09", amount: "C$ 18,200", status: "Pendiente" },
+  { id: "MV-303", type: "Ingreso", concept: "Cobro de clientes", date: "2026-10-08", amount: "C$ 14,750", status: "Aprobado" },
+];
+
+export const budgetRows = [
+  { concept: "Mercaderías", budget: "C$ 1,200,000", actual: "C$ 1,090,000", variance: "-9.2%" },
+  { concept: "Sueldos", budget: "C$ 540,000", actual: "C$ 558,400", variance: "+3.4%" },
+  { concept: "Marketing", budget: "C$ 170,000", actual: "C$ 154,800", variance: "-8.9%" },
+  { concept: "Servicios", budget: "C$ 120,000", actual: "C$ 128,090", variance: "+6.7%" },
+];
+
+export const predictionRows = [
+  { period: "Nov 2026", income: "C$ 2,550,000", expense: "C$ 1,850,000", forecast: "Flujo positivo" },
+  { period: "Dic 2026", income: "C$ 2,680,000", expense: "C$ 1,940,000", forecast: "Flujo positivo" },
+  { period: "Ene 2027", income: "C$ 2,750,000", expense: "C$ 2,010,000", forecast: "Estable" },
+];
+
+export const payrollRows = [
+  { employee: "María López", role: "Farmacéutica", salary: "C$ 22,000", deductions: "C$ 2,300", net: "C$ 19,700", status: "Pagada" },
+  { employee: "José Pérez", role: "Cajero", salary: "C$ 18,500", deductions: "C$ 1,900", net: "C$ 16,600", status: "Pendiente" },
+  { employee: "Carmen Ruiz", role: "Analista", salary: "C$ 25,000", deductions: "C$ 2,700", net: "C$ 22,300", status: "Pagada" },
+];
+
+export const reportsRows = [
+  { metric: "Margen bruto", value: "34.2%", trend: "+3.7%" },
+  { metric: "Rotación de inventario", value: "11.4 días", trend: "-1.1 días" },
+  { metric: "EBITDA", value: "C$ 540,000", trend: "+7.9%" },
+  { metric: "Liquidez", value: "1.86", trend: "+0.14" },
+];
+
+export const accountRows = [
+  { code: "1101", account: "Caja general", balance: "C$ 492,500" },
+  { code: "1102", account: "Caja chica", balance: "C$ 44,120" },
+  { code: "1201", account: "Clientes", balance: "C$ 180,300" },
+  { code: "2101", account: "Proveedores", balance: "C$ 96,450" },
+  { code: "3101", account: "Capital", balance: "C$ 1,050,600" },
+  { code: "4101", account: "Ventas", balance: "C$ 2,480,000" },
+];
+
+export const approvalRows = [
+  { module: "Compras", request: "OC-1002", status: "Pendiente" },
+  { module: "Caja chica", request: "MV-302", status: "Pendiente" },
+  { module: "Nómina", request: "NOM-024", status: "Aprobada" },
+  { module: "Arqueo", request: "ARQ-09", status: "Esperando" },
+];
+
+export const inventoryRows = [
+  { product: "Vitaminas Plus", stock: 120, unit: "unidades", cost: "C$ 42" },
+  { product: "Paracetamol 500mg", stock: 290, unit: "unidades", cost: "C$ 15" },
+  { product: "Antibiótico X", stock: 75, unit: "unidades", cost: "C$ 95" },
+  { product: "Jabón Antiséptico", stock: 430, unit: "unidades", cost: "C$ 18" },
+];
+
+export const generalMetrics = [
+  { label: "Margen bruto", value: "34.2%" },
+  { label: "Días del flujo", value: "18 días" },
+  { label: "Cobranza promedio", value: "12.6 días" },
+  { label: "Proyección anual", value: "C$ 31.3M" },
+];
+
+export const recentActivities = [
+  { title: "Aprobada orden de compra", detail: "OC-1001 - Distribuidora Medix", time: "Hace 2 h" },
+  { title: "Arqueo realizado", detail: "Caja chica confirmada por cajero", time: "Hace 4 h" },
+  { title: "Factura emitida", detail: "FV-2052 - Droguería Central", time: "Hace 6 h" },
+  { title: "Presupuesto revisado", detail: "Mercaderías ajustado al 9.2%", time: "Hoy" },
+];
+
+export function formatCurrency(value: number) {
+  return new Intl.NumberFormat("es-NI", {
+    style: "currency",
+    currency: "NIO",
+    maximumFractionDigits: 2,
+  }).format(value);
+}

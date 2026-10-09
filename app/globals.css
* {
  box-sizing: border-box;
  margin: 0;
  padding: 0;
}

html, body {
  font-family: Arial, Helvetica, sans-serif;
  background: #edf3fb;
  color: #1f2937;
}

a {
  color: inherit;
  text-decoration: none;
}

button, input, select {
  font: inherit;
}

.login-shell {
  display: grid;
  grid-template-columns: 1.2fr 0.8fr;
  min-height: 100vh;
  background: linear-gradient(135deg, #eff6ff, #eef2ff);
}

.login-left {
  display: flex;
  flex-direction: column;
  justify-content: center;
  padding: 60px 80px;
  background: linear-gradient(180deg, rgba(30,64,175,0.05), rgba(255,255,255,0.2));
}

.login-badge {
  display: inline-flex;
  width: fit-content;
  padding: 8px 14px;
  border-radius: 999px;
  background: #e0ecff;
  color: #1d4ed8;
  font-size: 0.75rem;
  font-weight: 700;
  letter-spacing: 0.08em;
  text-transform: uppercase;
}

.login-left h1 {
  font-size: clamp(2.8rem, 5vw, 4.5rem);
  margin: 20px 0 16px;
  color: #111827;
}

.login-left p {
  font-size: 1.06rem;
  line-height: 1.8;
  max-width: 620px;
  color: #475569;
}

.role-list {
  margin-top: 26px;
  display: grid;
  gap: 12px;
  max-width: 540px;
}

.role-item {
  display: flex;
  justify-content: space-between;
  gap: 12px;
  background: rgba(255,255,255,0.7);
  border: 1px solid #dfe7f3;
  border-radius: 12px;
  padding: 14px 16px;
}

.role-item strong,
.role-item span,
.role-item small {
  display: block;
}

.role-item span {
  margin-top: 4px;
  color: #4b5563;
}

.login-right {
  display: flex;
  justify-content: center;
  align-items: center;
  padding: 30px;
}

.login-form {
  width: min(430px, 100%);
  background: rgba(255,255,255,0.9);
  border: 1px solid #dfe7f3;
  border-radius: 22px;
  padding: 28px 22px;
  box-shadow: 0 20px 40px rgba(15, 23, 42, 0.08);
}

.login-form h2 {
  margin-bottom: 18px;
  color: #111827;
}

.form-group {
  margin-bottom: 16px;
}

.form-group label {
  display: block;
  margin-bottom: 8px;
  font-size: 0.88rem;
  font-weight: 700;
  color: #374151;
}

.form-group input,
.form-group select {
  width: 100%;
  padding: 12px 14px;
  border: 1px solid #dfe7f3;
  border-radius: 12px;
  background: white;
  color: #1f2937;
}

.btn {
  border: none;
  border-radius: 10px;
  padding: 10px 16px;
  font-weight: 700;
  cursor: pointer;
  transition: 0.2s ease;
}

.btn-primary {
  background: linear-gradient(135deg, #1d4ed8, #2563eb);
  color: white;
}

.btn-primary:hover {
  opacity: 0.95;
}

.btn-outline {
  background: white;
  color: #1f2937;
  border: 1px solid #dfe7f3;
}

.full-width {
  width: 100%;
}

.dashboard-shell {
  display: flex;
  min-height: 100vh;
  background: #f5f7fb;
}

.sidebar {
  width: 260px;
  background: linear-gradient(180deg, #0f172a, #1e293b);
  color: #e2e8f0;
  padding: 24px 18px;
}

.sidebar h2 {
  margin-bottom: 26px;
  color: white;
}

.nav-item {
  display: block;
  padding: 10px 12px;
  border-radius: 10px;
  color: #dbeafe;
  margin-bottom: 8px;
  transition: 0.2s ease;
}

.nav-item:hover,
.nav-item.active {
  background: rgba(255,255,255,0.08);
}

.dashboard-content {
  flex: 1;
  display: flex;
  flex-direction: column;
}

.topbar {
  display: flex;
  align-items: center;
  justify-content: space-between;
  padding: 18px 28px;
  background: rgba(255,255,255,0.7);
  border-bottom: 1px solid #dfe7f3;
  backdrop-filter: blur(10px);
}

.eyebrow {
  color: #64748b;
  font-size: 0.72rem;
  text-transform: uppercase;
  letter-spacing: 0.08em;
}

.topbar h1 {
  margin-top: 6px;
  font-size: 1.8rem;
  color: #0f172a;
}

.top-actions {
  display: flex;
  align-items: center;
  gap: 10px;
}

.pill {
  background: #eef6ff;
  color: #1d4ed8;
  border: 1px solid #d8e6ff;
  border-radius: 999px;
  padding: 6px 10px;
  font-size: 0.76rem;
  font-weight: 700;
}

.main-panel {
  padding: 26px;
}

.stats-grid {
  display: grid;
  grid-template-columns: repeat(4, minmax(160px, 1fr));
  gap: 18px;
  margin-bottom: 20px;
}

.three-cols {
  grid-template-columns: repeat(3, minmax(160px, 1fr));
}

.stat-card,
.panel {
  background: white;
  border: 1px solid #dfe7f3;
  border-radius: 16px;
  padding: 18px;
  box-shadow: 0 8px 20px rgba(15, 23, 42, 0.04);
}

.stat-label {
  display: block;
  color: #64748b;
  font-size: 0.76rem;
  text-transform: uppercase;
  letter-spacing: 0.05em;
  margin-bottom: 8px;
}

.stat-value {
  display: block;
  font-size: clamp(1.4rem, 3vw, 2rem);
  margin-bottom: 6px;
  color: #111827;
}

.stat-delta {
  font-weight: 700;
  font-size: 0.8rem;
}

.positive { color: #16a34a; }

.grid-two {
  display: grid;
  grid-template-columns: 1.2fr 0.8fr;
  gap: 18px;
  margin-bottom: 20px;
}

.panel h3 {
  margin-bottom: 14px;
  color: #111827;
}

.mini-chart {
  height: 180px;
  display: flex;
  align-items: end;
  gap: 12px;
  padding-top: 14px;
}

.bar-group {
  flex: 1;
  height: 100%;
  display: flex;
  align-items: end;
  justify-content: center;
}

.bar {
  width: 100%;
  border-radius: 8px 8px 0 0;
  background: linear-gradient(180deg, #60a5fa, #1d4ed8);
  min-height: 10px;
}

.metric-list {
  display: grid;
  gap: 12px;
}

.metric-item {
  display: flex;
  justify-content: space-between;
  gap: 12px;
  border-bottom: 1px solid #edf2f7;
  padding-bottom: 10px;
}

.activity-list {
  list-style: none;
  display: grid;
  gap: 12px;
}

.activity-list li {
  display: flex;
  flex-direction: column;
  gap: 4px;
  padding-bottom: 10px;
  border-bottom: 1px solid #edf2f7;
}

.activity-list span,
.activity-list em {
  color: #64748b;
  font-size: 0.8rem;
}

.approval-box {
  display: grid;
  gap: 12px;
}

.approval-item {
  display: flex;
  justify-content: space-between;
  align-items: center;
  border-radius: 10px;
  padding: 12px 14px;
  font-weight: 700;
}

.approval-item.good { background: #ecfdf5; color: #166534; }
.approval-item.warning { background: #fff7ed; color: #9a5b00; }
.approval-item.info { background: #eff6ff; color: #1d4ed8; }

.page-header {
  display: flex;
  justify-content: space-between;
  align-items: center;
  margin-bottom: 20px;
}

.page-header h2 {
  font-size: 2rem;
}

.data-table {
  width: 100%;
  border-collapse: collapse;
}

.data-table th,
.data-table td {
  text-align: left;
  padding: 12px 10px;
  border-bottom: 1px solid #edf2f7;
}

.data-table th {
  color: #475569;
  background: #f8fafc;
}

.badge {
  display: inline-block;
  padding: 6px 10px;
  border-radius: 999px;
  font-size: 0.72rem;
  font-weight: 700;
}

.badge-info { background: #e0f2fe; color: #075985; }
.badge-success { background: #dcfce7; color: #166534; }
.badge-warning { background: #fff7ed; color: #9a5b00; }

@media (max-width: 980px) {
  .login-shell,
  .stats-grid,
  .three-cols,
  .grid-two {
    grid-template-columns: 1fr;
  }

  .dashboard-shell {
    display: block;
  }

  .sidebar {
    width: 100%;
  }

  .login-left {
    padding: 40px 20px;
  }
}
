@@ -1,0 +1,91 @@
+app/page.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { demoUsers } from "@/lib/finance-data";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("admin@farmaciasa.com");
+  const [password, setPassword] = useState("admin123");
+  const [selectedRole, setSelectedRole] = useState("Administrador");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const user = demoUsers.find(
+      (item) => item.email === email && item.password === password && item.role === selectedRole
+    );
+
+    if (!user) {
+      alert("Credenciales inválidas. Verifique el usuario y la contraseña.");
+      return;
+    }
+
+    localStorage.setItem("farmacia_demo_user", JSON.stringify(user));
+    router.push("/dashboard");
+  };
+
+  return (
+    <div className="login-shell">
+      <div className="login-left">
+        <div className="login-badge">ERP financiero</div>
+        <h1>Farmacia S.A.</h1>
+        <p>
+          Sistema integrado de contabilidad, finanzas, presupuestos, predicciones,
+          caja, nómina y control ejecutivo en un solo entorno web.
+        </p>
+
+        <div className="role-list">
+          {demoUsers.slice(0, 4).map((user) => (
+            <div key={user.id} className="role-item">
+              <div>
+                <strong>{user.name}</strong>
+                <span>{user.role}</span>
+              </div>
+              <small>{user.email}</small>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="login-right">
+        <form className="login-form" onSubmit={handleLogin}>
+          <h2>Iniciar sesión</h2>
+          <div className="form-group">
+            <label>Correo</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@farmaciasa.com"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Contraseña</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Rol</label>
+            <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
+              {demoUsers.map((user) => (
+                <option key={user.id} value={user.role}>{user.role}</option>
+              ))}
+            </select>
+          </div>
+
+          <button type="submit" className="btn btn-primary full-width">Entrar</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+

@@ -1,0 +1,38 @@
+app/dashboard/presupuestos/page.tsx
+import { budgetRows } from "@/lib/finance-data";
+
+export default function PresupuestosPage() {
+  return (
+    <>
+      <div className="page-header">
+        <h2>Presupuestos</h2>
+        <button className="btn btn-primary">Crear presupuesto</button>
+      </div>
+
+      <div className="panel">
+        <h3>Estado por concepto</h3>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Presupuesto</th>
+              <th>Actual</th>
+              <th>Variación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {budgetRows.map((row) => (
+              <tr key={row.concept}>
+                <td>{row.concept}</td>
+                <td>{row.budget}</td>
+                <td>{row.actual}</td>
+                <td><span className="badge badge-info">{row.variance}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
